@@ -67,6 +67,14 @@ export default function SellPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="make">Brand</Label>
+                      <input 
+                      type="text" 
+                      placeholder="Enter vehicle brand"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      autoCorrect="on"
+                      autoCapitalize="words"
+                      spellCheck="true"
+                      />
                       {/* <Select defaultValue="toyota">
                         <SelectTrigger id="make">
                           <SelectValue placeholder="Select make" />
@@ -77,16 +85,8 @@ export default function SellPage() {
                           <SelectItem value="ford">Ford</SelectItem>
                           <SelectItem value="bmw">BMW</SelectItem>
                           <SelectItem value="tesla">Tesla</SelectItem>
-                        </SelectContent> 
+                        </SelectContent>
                       </Select> */}
-                      <input 
-                      type="text" 
-                      placeholder="Enter vehicle brand"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      autoCorrect="on"
-                      autoCapitalize="words"
-                      spellCheck="true"
-                      />
                     </div>
                   </div>
 

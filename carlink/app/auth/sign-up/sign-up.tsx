@@ -1,13 +1,49 @@
-import { ArrowLeft, Car } from "lucide-react"
-import Link from "next/link"
+"use client"
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { ArrowLeft, Car } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export default function SignUpPage() {
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const fullName = formData.get('full-name') as string;
+
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        fullName,
+        email,
+        createdAt: new Date().toISOString()
+      });
+
+      router.push('/dashboard');
+    } catch (error: any) {
+      setError(error.message || 'Failed to create account');
+    }
+  };
+
   return (
     <div className="container relative flex min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <Link
@@ -40,7 +76,7 @@ export default function SignUpPage() {
             {/* <p className="text-xs text-muted-foreground">Enter your details below to create your account</p> */}
           </div>
           <div className="grid gap-6">
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="grid gap-4">
                 {/* <div className="grid grid-cols-2 gap-4"> */}
                   <div className="grid gap-2">
@@ -63,7 +99,7 @@ export default function SignUpPage() {
                     autoCorrect="off"
                   />
                 </div>
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
@@ -73,7 +109,7 @@ export default function SignUpPage() {
                     autoComplete="phone"
                     autoCorrect="off"
                   />
-                </div>
+                </div> */}
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" />

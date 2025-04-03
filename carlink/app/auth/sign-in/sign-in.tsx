@@ -1,12 +1,35 @@
-import { ArrowLeft, Car } from "lucide-react"
-import Link from "next/link"
+"use client"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { ArrowLeft, Car } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export default function SignInPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/'); // Redirect to home page after successful login
+    } catch (error: any) {
+      setError(error.message || 'Failed to sign in');
+    }
+  };
+
   return (
     <div className="container relative flex min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <Link
@@ -39,17 +62,16 @@ export default function SignInPage() {
             <p className="text-sm text-muted-foreground">Enter your email and password to access your account</p>
           </div>
           <div className="grid gap-6">
-            <form>
+            <form onSubmit={handleSignIn}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="phone"
-                    placeholder="0123456789"
-                    type="phone"
-                    autoCapitalize="none"
-                    autoComplete="phone"
-                    autoCorrect="off"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
                 <div className="grid gap-2">
@@ -62,7 +84,13 @@ export default function SignInPage() {
                       Forgot password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <Button type="submit">Sign In</Button>
               </div>

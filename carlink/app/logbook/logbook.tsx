@@ -1,13 +1,11 @@
 "use client"
-
-import { useState } from "react"
+import { BarChart3, Calendar, Car, Clock, DollarSign, Fuel, Plus, Wrench } from "lucide-react"
 import Image from "next/image"
-import { Calendar, Fuel, Wrench, DollarSign, Plus, BarChart3, Car, Clock } from "lucide-react"
+import { useState } from "react"
 
+import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
 import {
   Dialog,
   DialogContent,
@@ -20,7 +18,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SiteHeader } from "@/components/site-header"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Mock data for user vehicles
 const vehiclesData = [

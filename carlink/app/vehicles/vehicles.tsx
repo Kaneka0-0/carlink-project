@@ -1,9 +1,11 @@
 "use client"
 
+import { getVehicles } from "@/lib/firebase-utils"
+import { Vehicle } from "@/types/vehicle"
 import { Car, ChevronDown, Clock, Filter, Grid, Heart, List, MapPin, User } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { SiteHeader } from "@/components/site-header"
 import { Badge } from "@/components/ui/badge"
@@ -15,129 +17,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Slider } from "@/components/ui/slider"
 
-
-
-// Mock data for vehicles
-const vehiclesData = [
-  {
-    id: 1,
-    title: "2021 Tesla Model 3",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 42999,
-    location: "San Francisco, CA",
-    seller: "Premium Motors",
-    bidEndsIn: "2 days",
-    isBidding: true,
-    isWishlisted: false,
-    year: 2021,
-    mileage: 15000,
-    fuelType: "Electric",
-  },
-  {
-    id: 2,
-    title: "2020 BMW X5",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 55000,
-    location: "Los Angeles, CA",
-    seller: "Luxury Auto Group",
-    bidEndsIn: "",
-    isBidding: false,
-    isWishlisted: true,
-    year: 2020,
-    mileage: 25000,
-    fuelType: "Gasoline",
-  },
-  {
-    id: 3,
-    title: "2019 Audi Q7",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 48500,
-    location: "Chicago, IL",
-    seller: "Elite Cars",
-    bidEndsIn: "5 days",
-    isBidding: true,
-    isWishlisted: false,
-    year: 2019,
-    mileage: 32000,
-    fuelType: "Diesel",
-  },
-  {
-    id: 4,
-    title: "2022 Ford Mustang GT",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 52000,
-    location: "Miami, FL",
-    seller: "Classic Auto",
-    bidEndsIn: "",
-    isBidding: false,
-    isWishlisted: false,
-    year: 2022,
-    mileage: 8000,
-    fuelType: "Gasoline",
-  },
-  {
-    id: 5,
-    title: "2018 Toyota Camry",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 22500,
-    location: "Seattle, WA",
-    seller: "Toyota Certified",
-    bidEndsIn: "",
-    isBidding: false,
-    isWishlisted: false,
-    year: 2018,
-    mileage: 45000,
-    fuelType: "Hybrid",
-  },
-  {
-    id: 6,
-    title: "2020 Honda Accord",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 27999,
-    location: "Denver, CO",
-    seller: "Honda Dealership",
-    bidEndsIn: "1 day",
-    isBidding: true,
-    isWishlisted: false,
-    year: 2020,
-    mileage: 30000,
-    fuelType: "Gasoline",
-  },
-  {
-    id: 7,
-    title: "2019 Mercedes-Benz E-Class",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 46000,
-    location: "Dallas, TX",
-    seller: "Luxury Imports",
-    bidEndsIn: "",
-    isBidding: false,
-    isWishlisted: false,
-    year: 2019,
-    mileage: 28000,
-    fuelType: "Gasoline",
-  },
-  {
-    id: 8,
-    title: "2021 Chevrolet Silverado",
-    image: "/placeholder.svg?height=400&width=600",
-    price: 39500,
-    location: "Phoenix, AZ",
-    seller: "Truck Depot",
-    bidEndsIn: "3 days",
-    isBidding: true,
-    isWishlisted: false,
-    year: 2021,
-    mileage: 18000,
-    fuelType: "Diesel",
-  },
-]
-
 export default function VehiclesPage() {
-  const [vehicles, setVehicles] = useState(vehiclesData)
-  type ViewMode = "grid" | "list"
-  const [viewMode, setViewMode] = useState<ViewMode>("grid")
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState("grid")
   const [priceRange, setPriceRange] = useState([0, 100000])
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        // Fetch vehicles from Firestore
+        const data = await getVehicles();
+        setVehicles(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error loading vehicles:', err);
+        setError('Failed to load vehicles');
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, [])
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
 
   const toggleWishlist = (id: number) => {
     setVehicles(

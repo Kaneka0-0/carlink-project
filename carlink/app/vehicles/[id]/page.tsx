@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -17,6 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
+import { db } from "@/lib/firebase"
+import { doc, getDoc } from "firebase/firestore"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -25,75 +27,128 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-// Mock data for a single vehicle
-const vehicleData = {
-  id: 1,
-  title: "2021 Tesla Model 3 Long Range AWD",
-  images: [
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-  ],
-  price: 42999,
-  location: "San Francisco, CA",
+// Define the vehicle data type
+interface VehicleData {
+  id: string;
+  title: string;
+  images: string[];
+  price: number;
+  location: string;
   seller: {
-    name: "Premium Motors",
-    rating: 4.8,
-    reviews: 124,
-    verified: true,
-    phone: "(555) 123-4567",
-    email: "contact@premiummotors.com",
+    name: string;
+    rating: number;
+    reviews: number;
+    verified: boolean;
+    phone: string;
+    email: string;
+  };
+  bidEndsIn?: string;
+  isBidding: boolean;
+  isWishlisted: boolean;
+  year: number;
+  mileage: number;
+  fuelType: string;
+  transmission: string;
+  color: string;
+  bodyType: string;
+  doors: number;
+  vin: string;
+  description: string;
+  features: string[];
+  bids: Array<{
+    id: number;
+    user: string;
+    amount: number;
+    time: string;
+  }>;
+  history: {
+    accidents: number;
+    owners: number;
+    title: string;
+    serviceRecords: Array<{
+      date: string;
+      mileage: number;
+      service: string;
+    }>;
+  };
+}
+
+// Default vehicle data
+const defaultVehicleData: VehicleData = {
+  id: "",
+  title: "",
+  images: ["/placeholder.svg?height=600&width=800"],
+  price: 0,
+  location: "",
+  seller: {
+    name: "",
+    rating: 0,
+    reviews: 0,
+    verified: false,
+    phone: "",
+    email: "",
   },
-  bidEndsIn: "2 days 4 hours",
-  isBidding: true,
+  isBidding: false,
   isWishlisted: false,
-  year: 2021,
-  mileage: 15000,
-  fuelType: "Electric",
-  transmission: "Automatic",
-  color: "Pearl White",
-  bodyType: "Sedan",
-  doors: 4,
-  vin: "5YJ3E1EA1MF123456",
-  description:
-    "This 2021 Tesla Model 3 Long Range AWD is in excellent condition with only 15,000 miles. It features Autopilot, premium interior, and a glass roof. The vehicle has a clean history with no accidents and is still under manufacturer warranty until 2025. The Pearl White exterior is paired with a black vegan leather interior. This Model 3 includes the premium connectivity package, 19-inch sport wheels, and the latest software updates.",
-  features: [
-    "Autopilot",
-    "Premium Interior",
-    "Glass Roof",
-    "Heated Seats",
-    "19-inch Sport Wheels",
-    "Premium Sound System",
-    "Navigation",
-    "Bluetooth",
-    "Backup Camera",
-    "Keyless Entry",
-    "Remote Start",
-    "Parking Sensors",
-  ],
-  bids: [
-    { id: 1, user: "user123", amount: 42500, time: "1 day ago" },
-    { id: 2, user: "bidder456", amount: 42000, time: "2 days ago" },
-    { id: 3, user: "carfan789", amount: 41500, time: "3 days ago" },
-  ],
+  year: 0,
+  mileage: 0,
+  fuelType: "",
+  transmission: "",
+  color: "",
+  bodyType: "",
+  doors: 0,
+  vin: "",
+  description: "",
+  features: [],
+  bids: [],
   history: {
     accidents: 0,
-    owners: 1,
-    title: "Clean",
-    serviceRecords: [
-      { date: "2022-10-15", mileage: 12000, service: "Regular maintenance" },
-      { date: "2022-04-20", mileage: 7500, service: "Tire rotation" },
-      { date: "2021-11-05", mileage: 3000, service: "Software update" },
-    ],
+    owners: 0,
+    title: "",
+    serviceRecords: [],
   },
 }
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isWishlisted, setIsWishlisted] = useState(vehicleData.isWishlisted)
-  const [bidAmount, setBidAmount] = useState(vehicleData.price + 500)
+  const [vehicleData, setVehicleData] = useState<VehicleData>(defaultVehicleData);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [bidAmount, setBidAmount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchVehicleData = async () => {
+      try {
+        const vehicleRef = doc(db, 'vehicles', params.id);
+        const vehicleSnap = await getDoc(vehicleRef);
+        
+        if (vehicleSnap.exists()) {
+          const data = vehicleSnap.data() as VehicleData;
+          setVehicleData(data);
+          setBidAmount(data.price + 500); // Set initial bid amount
+          setIsWishlisted(data.isWishlisted);
+        } else {
+          setError('Vehicle not found');
+        }
+      } catch (err) {
+        setError('Error loading vehicle data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicleData();
+  }, [params.id]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev === vehicleData.images.length - 1 ? 0 : prev + 1))

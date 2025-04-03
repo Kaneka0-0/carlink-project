@@ -1,19 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { Clock, Filter, MapPin, Search, User } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { Clock, Search, Filter, MapPin, User } from "lucide-react"
+import { useState } from "react"
 
+import { SiteHeader } from "@/components/site-header"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Slider } from "@/components/ui/slider"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SiteHeader } from "@/components/site-header"
 
 // Mock data for auctions
 const auctionsData = [

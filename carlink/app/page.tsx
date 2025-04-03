@@ -1,11 +1,25 @@
-import { Car, ChevronRight, Search, Sparkles } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+"use client"
 
-import { FeaturedVehicles } from "@/components/featured-vehicles"
-import { Button } from "@/components/ui/button"
+import { useAuth } from '@/lib/auth-context';
+import { Car, ChevronRight, Search, Sparkles } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+import { FeaturedVehicles } from "@/components/featured-vehicles";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth/sign-in');
+    }
+  }, [user, router]);
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
