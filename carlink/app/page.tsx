@@ -16,7 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/auth/sign-in');
+      router.push('/auth');
     }
   }, [user, router]);
 
@@ -38,10 +38,10 @@ export default function Home() {
               <Link href="/vehicles" className="text-muted-foreground hover:text-foreground transition-colors">
                 Browse
               </Link>
-              <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/auction" className="text-muted-foreground hover:text-foreground transition-colors">
                 Auctions
               </Link>
-              <Link href="/recommendations" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/ai" className="text-muted-foreground hover:text-foreground transition-colors">
                 AI
               </Link>
               <Link href="/logbook" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -50,7 +50,7 @@ export default function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/auth/sign-in">
+            <Link href="/auth">
               <Button variant="outline" size="sm">
                 Sign In
               </Button>
@@ -245,7 +245,7 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/auction" className="text-muted-foreground hover:text-foreground transition-colors">
                     Auctions
                   </Link>
                 </li>
@@ -263,7 +263,7 @@ export default function Home() {
               <h3 className="font-medium mb-4">Account</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/auth/sign-in" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/auth" className="text-muted-foreground hover:text-foreground transition-colors">
                     Sign In
                   </Link>
                 </li>

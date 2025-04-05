@@ -15,8 +15,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Slider } from "@/components/ui/slider"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-// Mock data for auctions
-const auctionsData = [
+// Mock data for auction
+const auctionData = [
   {
     id: 1,
     title: "2021 Tesla Model 3 Long Range",
@@ -92,7 +92,7 @@ const auctionsData = [
 ]
 
 export default function AuctionsPage() {
-  const [auctions, setAuctions] = useState(auctionsData)
+  const [auction, setAuctions] = useState(auctionData)
   const [priceRange, setPriceRange] = useState([0, 100000])
 
   return (
@@ -108,7 +108,7 @@ export default function AuctionsPage() {
             <div className="flex items-center gap-2 w-full md:w-auto">
               <div className="relative w-full md:w-auto">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input type="search" placeholder="Search auctions..." className="w-full md:w-[200px] pl-8" />
+                <Input type="search" placeholder="Search auction..." className="w-full md:w-[200px] pl-8" />
               </div>
               <Sheet>
                 <SheetTrigger asChild>
@@ -201,10 +201,10 @@ export default function AuctionsPage() {
           </Tabs>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {auctions.map((auction) => (
+            {auction.map((auction) => (
               <Card key={auction.id} className="overflow-hidden group">
                 <div className="relative">
-                  <Link href={`/auctions/${auction.id}`}>
+                  <Link href={`/auction/${auction.id}`}>
                     <div className="aspect-[4/3] overflow-hidden">
                       <Image
                         src={auction.image || "/placeholder.svg"}
@@ -224,7 +224,7 @@ export default function AuctionsPage() {
                   </Badge>
                 </div>
                 <CardContent className="p-4">
-                  <Link href={`/auctions/${auction.id}`}>
+                  <Link href={`/auction/${auction.id}`}>
                     <h3 className="font-semibold text-lg mb-2 hover:underline">{auction.title}</h3>
                   </Link>
                   <div className="flex justify-between items-center mb-3">

@@ -1,9 +1,9 @@
 "use client"
 
 import { db } from '@/lib/firebase';
+import { placeBid } from '@/lib/firebase-utils';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { placeBid } from '@/lib/firebase-utils';
 
 export default function AuctionPage({ params }: { params: { id: string } }) {
   const [auction, setAuction] = useState<VehicleData | null>(null);
@@ -11,7 +11,7 @@ export default function AuctionPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      doc(db, 'auctions', params.id),
+      doc(db, 'auction', params.id),
       (doc) => {
         setAuction({ id: doc.id, ...doc.data() } as VehicleData);
       }

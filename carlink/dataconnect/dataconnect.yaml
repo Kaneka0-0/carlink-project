@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "carlink"
+location: "asia-southeast1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "? File dataconnect\\connector\\connector.yaml already exists. Overwrite? Yes"
+      cloudSql:
+        instanceId: "no"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

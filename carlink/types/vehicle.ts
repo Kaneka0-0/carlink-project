@@ -1,17 +1,24 @@
 export interface Vehicle {
-  id?: string;
-  title: string;
-  image: string;
-  price: number;
-  location: string;
-  seller: string;
+  id: string;
+  make: string;
+  model: string;
   year: number;
+  price: number;
   mileage: number;
-  condition: string;
   fuelType: string;
-  bidCount?: number;
-  endsIn?: string;
-  isBidding?: boolean;
+  transmission: string;
+  location: string;
+  description: string;
+  imageUrl: string;
+  features: string[];
+  condition: string;
+  seller: {
+    id: string;
+    name: string;
+    rating: number;
+  };
   createdAt: string;
-  updatedAt: string;
-} 
+  status: 'available' | 'sold' | 'pending';
+}
+
+export type VehicleFormData = Omit<Vehicle, 'id' | 'createdAt' | 'seller' | 'status'>; 

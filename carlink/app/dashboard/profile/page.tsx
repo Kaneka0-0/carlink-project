@@ -14,4 +14,4 @@ export default function ProfilePage() {
   };
 
   // Add your profile update form
-} 
+}

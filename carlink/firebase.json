@@ -1,11 +1,26 @@
 {
-  "firebaseConfig": {
-    "apiKey": "AIzaSyBpjJKRF2It7qSb6isTsD7oCAGFoXmAoe8",
-    "authDomain": "carlink-83150.firebaseapp.com",
-    "projectId": "carlink-83150",
-    "storageBucket": "carlink-83150.firebasestorage.app",
-    "messagingSenderId": "178245658526",
-    "appId": "1:178245658526:web:23311c6a0b0c7c2ac7d88f",
-    "measurementId": "G-0HWKSPGSM8"
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
+
+
+

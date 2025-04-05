@@ -1,92 +1,165 @@
-import { addDoc, collection, doc, getDocs, orderBy, query, updateDoc, where } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { Vehicle, VehicleFormData } from '@/types/vehicle';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  updateDoc,
+  where
+} from 'firebase/firestore';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { auth, db, storage } from './firebase';
 
-// Add these collection references
-export const collections = {
-  users: collection(db, 'users'),
-  vehicles: collection(db, 'vehicles'),
-  auctions: collection(db, 'auctions'),
-  bids: collection(db, 'bids'),
-};
+const vehiclesCollection = collection(db, 'vehicles');
 
-// Vehicle type
-interface VehicleData {
-  title: string;
-  image: string;
-  price: number;
-  location: string;
-  seller: string;
-  bidCount?: number;
-  endsIn?: string;
-  year: number;
-  condition: string;
-  startingBid?: number;
-  currentBid?: number;
-  highestBidder?: string;
-  auctionEnd?: string;
-  status?: "active" | "ended";
+export async function uploadVehicleImage(file: File): Promise<string> {
+  if (!auth.currentUser) throw new Error('Must be logged in to upload images');
+  
+  const storageRef = ref(storage, `vehicles/${auth.currentUser.uid}/${file.name}-${Date.now()}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  return getDownloadURL(snapshot.ref);
 }
 
-// Vehicle related functions
-export const addVehicle = async (vehicle: Omit<VehicleData, "id">) => {
-  const docRef = await addDoc(collection(db, "vehicles"), {
-    ...vehicle,
+export async function addVehicle(data: VehicleFormData, imageFile: File) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('You must be logged in to add a vehicle');
+  }
+
+  // Create a unique filename using timestamp
+  const timestamp = Date.now();
+  const fileName = `${imageFile.name}-${timestamp}`;
+  
+  // Upload to user-specific folder
+  const storageRef = ref(storage, `vehicles/${user.uid}/${fileName}`);
+  
+  // Upload the image
+  await uploadBytes(storageRef, imageFile);
+  
+  // Get the download URL
+  const imageUrl = await getDownloadURL(storageRef);
+  
+  // Add the vehicle data to Firestore
+  const vehicleData = {
+    ...data,
+    imageUrl,
+    userId: user.uid,
     createdAt: new Date().toISOString(),
-  });
-  return { id: docRef.id, ...vehicle };
-};
+    status: 'active'
+  };
 
-export const getVehicles = async () => {
-  const q = query(collection(db, 'vehicles'), orderBy('createdAt', 'desc'));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
+  return addDoc(collection(db, 'vehicles'), vehicleData);
+}
 
-// Auction related functions
-export const placeBid = async (auctionId: string, userId: string, amount: number) => {
+export async function getVehicles(filters?: {
+  status?: Vehicle['status'];
+  userId?: string;
+}): Promise<Vehicle[]> {
   try {
-    const bidRef = await addDoc(collection(db, 'bids'), {
-      auctionId,
-      userId,
-      amount,
-      timestamp: new Date()
-    });
-    return bidRef.id;
+    let q = query(vehiclesCollection, orderBy('createdAt', 'desc'));
+
+    if (filters?.status) {
+      q = query(q, where('status', '==', filters.status));
+    }
+
+    if (filters?.userId) {
+      q = query(q, where('userId', '==', filters.userId));
+    }
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Vehicle));
   } catch (error) {
-    console.error('Error placing bid:', error);
+    console.error('Error getting vehicles:', error);
     throw error;
   }
-};
+}
 
-// Get active auctions
-export const getActiveAuctions = async (): Promise<VehicleData[]> => {
-  const q = query(collection(db, "vehicles"), where("status", "==", "active"));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as VehicleData));
-};
-
-// End auction
-export const endAuction = async (vehicleId: string) => {
-  const vehicleRef = doc(db, "vehicles", vehicleId);
-  await updateDoc(vehicleRef, { status: "ended" });
-};
-
-// User related functions
-export const updateUserProfile = async (userId: string, data: any) => {
+export async function getVehicle(id: string): Promise<Vehicle | null> {
   try {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, data);
+    const docRef = doc(vehiclesCollection, id);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) return null;
+    
+    return {
+      id: docSnap.id,
+      ...docSnap.data(),
+      createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
+    } as Vehicle;
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error('Error getting vehicle:', error);
     throw error;
   }
-};
+}
 
-// Image upload function
-export const uploadVehicleImage = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `vehicles/${Date.now()}_${file.name}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(snapshot.ref);
-  return downloadURL;
-};
+export async function updateVehicle(
+  id: string,
+  data: Partial<VehicleFormData>,
+  newImageFile?: File
+): Promise<void> {
+  if (!auth.currentUser) throw new Error('Must be logged in to update vehicles');
+
+  try {
+    const vehicleRef = doc(vehiclesCollection, id);
+    const vehicle = await getVehicle(id);
+    
+    if (!vehicle) throw new Error('Vehicle not found');
+    if (vehicle.seller.id !== auth.currentUser.uid) throw new Error('Not authorized to update this vehicle');
+
+    let updateData = { ...data };
+
+    if (newImageFile) {
+      // Delete old image if it exists
+      if (vehicle.imageUrl) {
+        const oldImageRef = ref(storage, vehicle.imageUrl);
+        try {
+          await deleteObject(oldImageRef);
+        } catch (error) {
+          console.error('Error deleting old image:', error);
+        }
+      }
+
+      // Upload new image
+      const imageUrl = await uploadVehicleImage(newImageFile);
+      updateData.imageUrl = imageUrl;
+    }
+
+    await updateDoc(vehicleRef, updateData);
+  } catch (error) {
+    console.error('Error updating vehicle:', error);
+    throw error;
+  }
+}
+
+export async function deleteVehicle(id: string): Promise<void> {
+  if (!auth.currentUser) throw new Error('Must be logged in to delete vehicles');
+
+  try {
+    const vehicle = await getVehicle(id);
+    if (!vehicle) throw new Error('Vehicle not found');
+    if (vehicle.seller.id !== auth.currentUser.uid) throw new Error('Not authorized to delete this vehicle');
+
+    // Delete image from storage if it exists
+    if (vehicle.imageUrl) {
+      const imageRef = ref(storage, vehicle.imageUrl);
+      try {
+        await deleteObject(imageRef);
+      } catch (error) {
+        console.error('Error deleting image:', error);
+      }
+    }
+
+    // Delete document from Firestore
+    await deleteDoc(doc(vehiclesCollection, id));
+  } catch (error) {
+    console.error('Error deleting vehicle:', error);
+    throw error;
+  }
+} 

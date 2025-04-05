@@ -5,8 +5,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
 
 interface SiteHeaderProps {
   showBackButton?: boolean
@@ -57,13 +55,16 @@ export function SiteHeader({ showBackButton = false, backButtonLabel = "Back", b
             />
           </Link>
           <nav className="hidden md:flex gap-6">
+          <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+            Dashboard
+            </Link>
             <Link href="/vehicles" className="text-muted-foreground hover:text-foreground transition-colors">
               Browse
             </Link>
-            <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/auction" className="text-muted-foreground hover:text-foreground transition-colors">
               Auctions
             </Link>
-            <Link href="/recommendations" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/ai" className="text-muted-foreground hover:text-foreground transition-colors">
               AI 
             </Link>
             <Link href="/logbook" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -73,7 +74,7 @@ export function SiteHeader({ showBackButton = false, backButtonLabel = "Back", b
         </div>
         {/* <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Link href="/auth/sign-in">
+          <Link href="/auth">
             <Button variant="outline" size="sm">
               Sign In
             </Button>
